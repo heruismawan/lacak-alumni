@@ -1,13 +1,17 @@
 import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Search, FileText, History } from 'lucide-react';
+import { LayoutDashboard, Users, Search, FileText, History, LogOut, UserCircle, GraduationCap } from 'lucide-react';
+import { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
 
 export default function Layout() {
+  const { logout } = useContext(AuthContext);
+
   const navItems = [
-    { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={18} /> },
-    { name: 'Input Alumni', path: '/input', icon: <Users size={18} /> },
-    { name: 'Tracking Alumni', path: '/tracking', icon: <Search size={18} /> },
-    { name: 'Evidence / Bukti', path: '/evidence', icon: <FileText size={18} /> },
-    { name: 'Riwayat Tracking', path: '/history', icon: <History size={18} /> },
+    { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
+    { name: 'Input Alumni', path: '/input', icon: <Users size={20} /> },
+    { name: 'Tracking Alumni', path: '/tracking', icon: <Search size={20} /> },
+    { name: 'Evidence / Bukti', path: '/evidence', icon: <FileText size={20} /> },
+    { name: 'Riwayat Tracking', path: '/history', icon: <History size={20} /> },
   ];
 
   return (
@@ -16,10 +20,12 @@ export default function Layout() {
       <aside className="sidebar">
         <div className="sidebar-header">
           <div className="logo">
-            <span className="logo-icon">🎓</span>
-            <div className="logo-text">
-              <h2 style={{ fontFamily: "'VT323', monospace", fontSize: '22px', color: '#39ff14', textShadow: '0 0 8px #39ff14', marginBottom: '2px', letterSpacing: '1px' }}>ALUMNI TRACKER</h2>
-              <p style={{ fontFamily: "'Share Tech Mono', monospace", fontSize: '10px', color: '#2a6a2a', letterSpacing: '2px' }}>{'>> SISTEM PELACAKAN ALUMNI'}</p>
+            <div style={{ background: 'var(--primary)', color: 'white', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <GraduationCap size={24} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', lineHeight: 1.2 }}>Lacak Alumni</h2>
+              <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Sistem Pelacakan</p>
             </div>
           </div>
         </div>
@@ -37,30 +43,58 @@ export default function Layout() {
             </NavLink>
           ))}
         </nav>
+        
+        <div style={{ marginTop: 'auto', padding: '24px' }}>
+          <button 
+            onClick={logout} 
+            className="btn btn-secondary" 
+            style={{ width: '100%', justifyContent: 'center', color: 'var(--danger)', borderColor: 'var(--border-color)' }}
+          >
+            <LogOut size={16} />
+            Keluar
+          </button>
+        </div>
       </aside>
 
       {/* Main Content Area */}
       <main className="main-content">
-        <Outlet />
+        <header className="top-header">
+          <div className="header-search">
+            {/* Area for breadcrumbs or global search */}
+          </div>
+          <div className="header-profile" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>Admin Sistem</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Administrator</div>
+            </div>
+            <UserCircle size={36} color="var(--primary)" strokeWidth={1.5} />
+          </div>
+        </header>
+
+        <div className="content-wrapper">
+          <Outlet />
+        </div>
       </main>
 
       <style>{`
         .sidebar {
           width: var(--sidebar-width);
-          background-color: var(--sidebar-bg);
-          border-right: 1px solid #1a3a1a;
+          background-color: var(--bg-card);
+          border-right: 1px solid var(--border-color);
           display: flex;
           flex-direction: column;
           flex-shrink: 0;
           height: 100vh;
           position: sticky;
           top: 0;
-          box-shadow: 4px 0 20px rgba(0, 200, 0, 0.05);
         }
 
         .sidebar-header {
-          padding: 24px;
-          border-bottom: 1px solid #0a200a;
+          padding: 0 24px;
+          border-bottom: 1px solid var(--border-color);
+          height: var(--header-height);
+          display: flex;
+          align-items: center;
         }
 
         .logo {
@@ -72,48 +106,32 @@ export default function Layout() {
         .sidebar-nav {
           display: flex;
           flex-direction: column;
-          padding: 16px 12px;
-          gap: 4px;
-          margin-top: 8px;
+          padding: 24px 16px;
+          gap: 8px;
         }
 
         .nav-item {
           display: flex;
           align-items: center;
-          padding: 10px 14px;
-          border-radius: 0;
-          color: #3a7a3a;
-          font-family: 'VT323', monospace;
-          font-size: 18px;
-          letter-spacing: 1px;
-          transition: all 0.15s ease;
+          padding: 12px 16px;
+          border-radius: var(--border-radius-sm);
+          color: var(--text-secondary);
+          font-weight: 500;
+          font-size: 14px;
+          transition: var(--transition);
           gap: 12px;
-          border-left: 3px solid transparent;
           text-decoration: none;
-          text-transform: uppercase;
         }
 
         .nav-item:hover {
-          background: rgba(57, 255, 20, 0.05);
-          color: #00cc00;
-          border-left-color: #005500;
+          background-color: #F3F4F6;
+          color: var(--text-primary);
         }
 
         .nav-item.active {
-          background: rgba(57, 255, 20, 0.07);
-          color: #39ff14;
-          border-left: 3px solid #39ff14;
-          text-shadow: 0 0 8px #39ff14;
-        }
-
-        .nav-item::before {
-          content: '> ';
-          opacity: 0;
-          transition: opacity 0.15s;
-        }
-        .nav-item:hover::before,
-        .nav-item.active::before {
-          opacity: 1;
+          background-color: var(--primary-light);
+          color: var(--primary);
+          font-weight: 600;
         }
       `}</style>
     </div>
