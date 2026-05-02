@@ -10,8 +10,6 @@ export default function Layout() {
     { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
     { name: 'Input Alumni', path: '/input', icon: <Users size={20} /> },
     { name: 'Tracking Alumni', path: '/tracking', icon: <Search size={20} /> },
-    { name: 'Evidence / Bukti', path: '/evidence', icon: <FileText size={20} /> },
-    { name: 'Riwayat Tracking', path: '/history', icon: <History size={20} /> },
   ];
 
   return (
