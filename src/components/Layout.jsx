@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Search, LogOut, UserCircle, GraduationCap, UserCheck } from 'lucide-react';
+import { LayoutDashboard, Search, LogOut, UserCircle, GraduationCap, UserCheck } from 'lucide-react';
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 
@@ -8,7 +8,6 @@ export default function Layout() {
 
   const navItems = [
     { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
-    { name: 'Input Alumni', path: '/input', icon: <Users size={20} /> },
     { name: 'Tracking Alumni', path: '/tracking', icon: <Search size={20} /> },
     { name: 'Teridentifikasi', path: '/teridentifikasi', icon: <UserCheck size={20} /> },
   ];

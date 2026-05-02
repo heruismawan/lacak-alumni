@@ -1,7 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
-import InputAlumni from './pages/InputAlumni';
 import TrackingList from './pages/TrackingList';
 import AlumniDetail from './pages/AlumniDetail';
 import AlumniTeridentifikasi from './pages/AlumniTeridentifikasi';
@@ -16,7 +15,6 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route index element={<Dashboard />} />
-          <Route path="input" element={<InputAlumni />} />
           <Route path="tracking" element={<TrackingList />} />
           <Route path="tracking/:id" element={<AlumniDetail />} />
           <Route path="teridentifikasi" element={<AlumniTeridentifikasi />} />

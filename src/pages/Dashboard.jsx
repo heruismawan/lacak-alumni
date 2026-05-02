@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import { Users, CheckCircle, TrendingUp, Calendar, ArrowRight, UserPlus, Loader2 } from 'lucide-react';
+import { Users, CheckCircle, TrendingUp, Calendar, ArrowRight, Loader2 } from 'lucide-react';
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -70,11 +70,7 @@ export default function Dashboard() {
           <h1>Dashboard Overview</h1>
           <p>Statistik real-time penelusuran data alumni</p>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <Link to="/input" className="btn btn-primary" style={{ borderRadius: '12px', padding: '10px 20px' }}>
-            <UserPlus size={18} /> Tambah Data
-          </Link>
-        </div>
+
       </header>
 
       <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '32px' }}>
