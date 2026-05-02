@@ -14,34 +14,52 @@ export default function InputAlumni() {
     status: 'Teridentifikasi', query: '', evidence: ''
   });
 
-  const [linkedinUrl, setLinkedinUrl] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [isFetching, setIsFetching] = useState(false);
 
-  const handleSimulateFetch = () => {
-    if (!linkedinUrl) return alert('Silakan masukkan URL LinkedIn terlebih dahulu');
+  const handleRealFetch = async () => {
+    if (!searchQuery) return alert('Silakan masukkan Nama atau NIM terlebih dahulu');
     setIsFetching(true);
     
-    // Simulate API delay
-    setTimeout(() => {
-      setFormData(prev => ({
-        ...prev,
-        name: 'Budi Santoso',
-        nim: '1012015',
-        tahunMasuk: '2020',
-        fakultas: 'Fakultas Ilmu Komputer',
-        prodi: 'Teknik Informatika',
-        email: 'budi.santoso@gmail.com',
-        linkedin: linkedinUrl,
-        workPlace: 'PT. Inovasi Digital',
-        position: 'Frontend Developer',
-        jobStatus: 'Swasta',
-        evidence: linkedinUrl,
-        status: 'Teridentifikasi',
-        query: 'Extracted from LinkedIn'
-      }));
+    try {
+      const response = await fetch(`http://localhost:5001/api/fetch-alumni?query=${encodeURIComponent(searchQuery)}`);
+      const result = await response.json();
+
+      if (result.success) {
+        const { data } = result;
+        setFormData(prev => ({
+          ...prev,
+          name: data.name || '',
+          nim: data.nim || '',
+          tahunMasuk: data.tahunMasuk || '',
+          tanggalLulus: data.tanggalLulus || '',
+          fakultas: data.fakultas || '',
+          prodi: data.prodi || '',
+          email: data.email || '',
+          noHp: data.phone || '',
+          linkedin: data.linkedin || '',
+          instagram: data.instagram || '',
+          facebook: data.facebook || '',
+          tiktok: data.tiktok || '',
+          workPlace: data.workPlace || '',
+          workAddress: data.workAddress || '',
+          position: data.position || '',
+          jobStatus: data.jobStatus || 'Swasta',
+          workSocial: data.workSocial || '',
+          evidence: data.linkedin || data.facebook || '',
+          status: 'Teridentifikasi',
+          query: `Smart Search: ${searchQuery}`
+        }));
+        alert('Data alumni ditemukan dan diperkaya dengan informasi dari internet!');
+      } else {
+        alert(result.error || 'Data tidak ditemukan');
+      }
+    } catch (error) {
+      console.error('Fetch error:', error);
+      alert('Gagal menghubungi backend. Pastikan server backend sudah berjalan di port 5001.');
+    } finally {
       setIsFetching(false);
-      alert('Data berhasil diekstrak dari LinkedIn (Simulasi)');
-    }, 1500);
+    }
   };
 
   const handleChange = (e) => {
@@ -66,33 +84,34 @@ export default function InputAlumni() {
 
       <div style={{ maxWidth: '1000px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
-        {/* URL Extraction Card */}
-        <div className="card" style={{ marginBottom: 0 }}>
+        {/* Smart Search Card */}
+        <div className="card" style={{ marginBottom: 0, border: '1px solid var(--accent-color)', backgroundColor: 'rgba(var(--accent-color-rgb), 0.05)' }}>
           <h3 style={{ fontSize: '16px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Linkedin size={20} color="#0A66C2" />
-            Tarik Data Otomatis (Simulasi)
+            <Search size={20} color="var(--accent-color)" />
+            Pencarian Cerdas & OSINT
           </h3>
           <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
-            Masukkan URL LinkedIn alumni untuk mengisi form secara otomatis menggunakan *web scraper*.
+            Cari alumni berdasarkan <strong>Nama</strong> atau <strong>NIM</strong>. Sistem akan mencocokkan dengan database internal dan mencari data pekerjaan/sosial media terbaru di internet secara otomatis.
           </p>
           <div style={{ display: 'flex', gap: '12px' }}>
             <input 
-              type="url" 
+              type="text" 
               className="form-control" 
-              placeholder="https://linkedin.com/in/username..."
-              value={linkedinUrl}
-              onChange={(e) => setLinkedinUrl(e.target.value)}
+              placeholder="Masukkan Nama Lengkap atau NIM..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               style={{ flex: 1 }}
+              onKeyPress={(e) => e.key === 'Enter' && handleRealFetch()}
             />
             <button 
               type="button" 
-              className="btn btn-secondary" 
-              onClick={handleSimulateFetch}
+              className="btn btn-primary" 
+              onClick={handleRealFetch}
               disabled={isFetching}
-              style={{ minWidth: '140px' }}
+              style={{ minWidth: '160px' }}
             >
-              {isFetching ? 'Mengekstrak...' : (
-                <><Search size={16} /> Tarik Data</>
+              {isFetching ? 'Mencari...' : (
+                <><Search size={16} /> Cari Alumni</>
               )}
             </button>
           </div>

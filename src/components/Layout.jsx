@@ -4,7 +4,7 @@ import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 
 export default function Layout() {
-  const { logout } = useContext(AuthContext);
+  const { logout, user } = useContext(AuthContext);
 
   const navItems = [
     { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
@@ -64,8 +64,8 @@ export default function Layout() {
           </div>
           <div className="header-profile" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>Admin Sistem</div>
-              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Administrator</div>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>{user?.email?.split('@')[0] || 'User'}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{user?.email || 'Administrator'}</div>
             </div>
             <UserCircle size={36} color="var(--primary)" strokeWidth={1.5} />
           </div>

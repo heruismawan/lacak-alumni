@@ -1,118 +1,147 @@
-import { useContext, useState } from 'react';
-import { AlumniContext } from '../context/AlumniContext';
-import { Trash2, ExternalLink, Search, Eye, X, Download } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
+import { Trash2, Search, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
 export default function TrackingList() {
-  const { alumniData, removeAlumni } = useContext(AlumniContext);
+  const [alumniData, setAlumniData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('Semua');
-  const [selectedAlumni, setSelectedAlumni] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+  const navigate = useNavigate();
+  
+  const itemsPerPage = 50;
 
-  const handleDelete = (id) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus data alumni ini?')) {
-      removeAlumni(id);
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      fetchAlumni();
+    }, 500); 
+
+    return () => clearTimeout(delayDebounce);
+  }, [currentPage, searchTerm]);
+
+  const fetchAlumni = async () => {
+    setLoading(true);
+    try {
+      let query = supabase
+        .from('alumni')
+        .select('*', { count: 'exact' });
+
+      if (searchTerm) {
+        query = query.or(`nama_lulusan.ilike.%${searchTerm}%,nim.ilike.%${searchTerm}%`);
+      }
+
+      const { data, count, error } = await query
+        .order('nama_lulusan', { ascending: true })
+        .range(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage - 1);
+
+      if (error) throw error;
+
+      setAlumniData(data || []);
+      setTotalCount(count || 0);
+    } catch (error) {
+      console.error('Error fetching alumni:', error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const filteredAlumni = alumniData.filter(a => {
-    const term = searchTerm.toLowerCase();
-    const nameMatch = a.name?.toLowerCase().includes(term);
-    const nimMatch = a.nim?.toLowerCase().includes(term);
-    
-    if (statusFilter !== 'Semua' && a.status !== statusFilter) return false;
-    
-    return nameMatch || nimMatch;
-  });
+  const handleDelete = async (id) => {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus data alumni ini?')) return;
+    const { error } = await supabase.from('alumni').delete().eq('id', id);
+    if (error) alert('Gagal menghapus: ' + error.message);
+    else fetchAlumni();
+  };
+
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   return (
     <>
       <header className="page-header">
         <div>
           <h1>Tracking Alumni</h1>
-          <p>Daftar seluruh alumni yang telah atau sedang dilacak</p>
+          <p>Mengelola {totalCount.toLocaleString()} data alumni terlacak</p>
         </div>
       </header>
 
       <div className="card" style={{ padding: 0 }}>
-        {/* Table Top Controls */}
-        <div style={{ padding: '20px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-          <div style={{ display: 'flex', gap: '16px', flex: 1, maxWidth: '600px' }}>
-            <div style={{ position: 'relative', flex: 1 }}>
-              <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-              <input 
-                type="text" 
-                className="form-control" 
-                placeholder="Cari berdasarkan Nama atau NIM..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{ paddingLeft: '36px' }}
-              />
-            </div>
-            <select 
+        {/* Search Bar */}
+        <div style={{ padding: '24px', borderBottom: '1px solid var(--border-color)' }}>
+          <div style={{ position: 'relative' }}>
+            <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            <input 
+              type="text" 
               className="form-control" 
-              style={{ width: '200px' }}
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="Semua">Semua Status</option>
-              <option value="Teridentifikasi">Teridentifikasi</option>
-              <option value="Perlu Verifikasi">Perlu Verifikasi</option>
-              <option value="Belum Ditemukan">Belum Ditemukan</option>
-            </select>
+              placeholder="Cari berdasarkan Nama Lengkap atau NIM..." 
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(0);
+              }}
+              style={{ paddingLeft: '44px', height: '48px', borderRadius: '12px' }}
+            />
           </div>
-          <button className="btn btn-secondary">
-            <Download size={16} /> Export Data
-          </button>
         </div>
 
-        {/* Table */}
+        {/* Table Container */}
         <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
-          <table>
+          <table style={{ minWidth: '800px' }}>
             <thead>
               <tr>
-                <th>Nama Alumni & NIM</th>
-                <th>Posisi & Tempat Kerja</th>
-                <th>Status Pelacakan</th>
-                <th>Terakhir Diupdate</th>
-                <th style={{ width: '120px', textAlign: 'center' }}>Aksi</th>
+                <th>Nama</th>
+                <th>NIM</th>
+                <th>Angkatan</th>
+                <th>Program Studi</th>
+                <th>Status Kerja</th>
+                <th style={{ textAlign: 'center' }}>Aksi</th>
               </tr>
             </thead>
             <tbody>
-              {filteredAlumni.length === 0 ? (
+              {loading ? (
                 <tr>
-                  <td colSpan="5" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '48px 24px' }}>
-                    {searchTerm ? 'Tidak ada data alumni yang cocok dengan pencarian.' : 'Belum ada data tracking alumni.'}
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '64px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                      <Loader2 size={32} className="animate-spin" style={{ color: 'var(--primary)', animation: 'spin 1s linear infinite' }} />
+                      <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Mengambil data...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : alumniData.length === 0 ? (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '64px', color: 'var(--text-muted)', fontSize: '15px' }}>
+                    Data alumni tidak ditemukan.
                   </td>
                 </tr>
               ) : (
-                filteredAlumni.map(alumni => (
+                alumniData.map(alumni => (
                   <tr key={alumni.id}>
-                    <td>
-                      <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{alumni.name}</strong>
-                      <br />
-                      <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{alumni.nim ? `NIM: ${alumni.nim}` : 'NIM: -'}</span>
+                    <td style={{ fontWeight: 600 }}>{alumni.nama_lulusan}</td>
+                    <td>{alumni.nim || '-'}</td>
+                    <td>{alumni.tahun_masuk || '-'}</td>
+                    <td>{alumni.program_studi || '-'}</td>
+                    <td style={{ maxWidth: '180px' }}>
+                      <div 
+                        className="truncate" 
+                        style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} 
+                        title={alumni.status_kerja}
+                      >
+                        {alumni.status_kerja || '-'}
+                      </div>
                     </td>
                     <td>
-                      <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{alumni.position || '-'}</span>
-                      <br />
-                      <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{alumni.workPlace || '-'}</span>
-                    </td>
-                    <td>{getStatusBadge(alumni.status)}</td>
-                    <td style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{alumni.date}</td>
-                    <td>
-                      <div style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
-                        <button
-                          onClick={() => setSelectedAlumni(alumni)}
-                          className="btn btn-tertiary"
-                          title="Lihat Detail"
+                      <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                        <button 
+                          onClick={() => navigate(`/tracking/${alumni.id}`)} 
+                          className="btn btn-secondary" 
+                          style={{ borderRadius: '8px', fontSize: '12px', padding: '6px 12px', borderColor: 'var(--primary)', color: 'var(--primary)' }}
                         >
-                          <Eye size={18} />
+                          Detail
                         </button>
-                        <button
-                          onClick={() => handleDelete(alumni.id)}
-                          className="btn btn-tertiary"
-                          style={{ color: 'var(--danger)' }}
-                          title="Hapus Data"
+                        <button 
+                          onClick={() => handleDelete(alumni.id)} 
+                          className="btn btn-tertiary" 
+                          style={{ color: 'var(--danger)', borderRadius: '8px', padding: '6px' }}
                         >
                           <Trash2 size={18} />
                         </button>
@@ -124,88 +153,32 @@ export default function TrackingList() {
             </tbody>
           </table>
         </div>
-      </div>
 
-      {/* Detail Modal */}
-      {selectedAlumni && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(17, 24, 39, 0.4)', backdropFilter: 'blur(2px)', zIndex: 1000, display: 'flex', justifyItems: 'center', alignItems: 'center', padding: '24px', overflowY: 'auto' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '700px', margin: 'auto', position: 'relative', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
+        {/* Pagination Footer */}
+        <div style={{ padding: '20px 24px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+            Menampilkan <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{alumniData.length}</span> dari {totalCount.toLocaleString()} data
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
             <button 
-              onClick={() => setSelectedAlumni(null)}
-              className="btn btn-tertiary"
-              style={{ position: 'absolute', top: '20px', right: '20px', padding: '4px' }}
+              className="btn btn-secondary" 
+              onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+              disabled={currentPage === 0 || loading}
+              style={{ borderRadius: '8px', padding: '8px 16px' }}
             >
-              <X size={20} />
+              <ChevronLeft size={18} /> Previous
             </button>
-
-            <h2 style={{ fontSize: '24px', color: 'var(--text-primary)', marginBottom: '4px' }}>Detail Alumni</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid var(--border-color)' }}>
-              Informasi lengkap hasil pelacakan data alumni
-            </p>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
-              <div>
-                <h4 style={{ color: 'var(--primary)', marginBottom: '16px', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pribadi & Akademik</h4>
-                <div style={{ marginBottom: '12px' }}><small style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '13px' }}>Nama Lengkap:</small><div style={{ fontWeight: 500 }}>{selectedAlumni.name}</div></div>
-                <div style={{ marginBottom: '12px' }}><small style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '13px' }}>NIM:</small><div style={{ fontWeight: 500 }}>{selectedAlumni.nim || '-'}</div></div>
-                <div style={{ marginBottom: '12px' }}><small style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '13px' }}>Fakultas / Prodi:</small><div style={{ fontWeight: 500 }}>{selectedAlumni.fakultas || '-'} / {selectedAlumni.prodi || '-'}</div></div>
-                <div style={{ marginBottom: '12px' }}><small style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '13px' }}>Tahun Masuk / Lulus:</small><div style={{ fontWeight: 500 }}>{selectedAlumni.tahunMasuk || '-'} / {selectedAlumni.tanggalLulus || '-'}</div></div>
-              </div>
-
-              <div>
-                <h4 style={{ color: 'var(--primary)', marginBottom: '16px', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pekerjaan</h4>
-                <div style={{ marginBottom: '12px' }}><small style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '13px' }}>Tempat Bekerja:</small><div style={{ fontWeight: 500 }}>{selectedAlumni.workPlace || '-'}</div></div>
-                <div style={{ marginBottom: '12px' }}><small style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '13px' }}>Posisi / Jabatan:</small><div style={{ fontWeight: 500 }}>{selectedAlumni.position || '-'}</div></div>
-                <div style={{ marginBottom: '12px' }}><small style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '13px' }}>Status:</small><div style={{ fontWeight: 500 }}>{selectedAlumni.jobStatus || '-'}</div></div>
-                <div style={{ marginBottom: '12px' }}><small style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '13px' }}>Alamat Kerja:</small><div style={{ fontWeight: 500 }}>{selectedAlumni.workAddress || '-'}</div></div>
-              </div>
-
-              <div>
-                <h4 style={{ color: 'var(--primary)', marginBottom: '16px', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Kontak & Sosial Media</h4>
-                <div style={{ marginBottom: '12px' }}><small style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '13px' }}>Email:</small><div style={{ fontWeight: 500 }}>{selectedAlumni.email || '-'}</div></div>
-                <div style={{ marginBottom: '12px' }}><small style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '13px' }}>No. HP:</small><div style={{ fontWeight: 500 }}>{selectedAlumni.noHp || '-'}</div></div>
-                {selectedAlumni.linkedin && (
-                  <div style={{ marginTop: '12px' }}>
-                    <a href={selectedAlumni.linkedin} target="_blank" rel="noreferrer" style={{ color: '#0A66C2', fontSize: '14px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}><ExternalLink size={14} /> Profil LinkedIn</a>
-                  </div>
-                )}
-                {selectedAlumni.instagram && (
-                 <div style={{ marginTop: '8px' }}>
-                    <a href={selectedAlumni.instagram} target="_blank" rel="noreferrer" style={{ color: '#E1306C', fontSize: '14px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}><ExternalLink size={14} /> Instagram</a>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <h4 style={{ color: 'var(--primary)', marginBottom: '16px', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status Pelacakan</h4>
-                <div style={{ marginBottom: '12px' }}><small style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '13px', marginBottom: '4px' }}>Status:</small><div>{getStatusBadge(selectedAlumni.status)}</div></div>
-                <div style={{ marginBottom: '12px' }}><small style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '13px' }}>Tracking Query:</small><div style={{ fontWeight: 500 }}>{selectedAlumni.query || '-'}</div></div>
-                <div style={{ marginBottom: '12px' }}><small style={{ color: 'var(--text-secondary)', display: 'block', fontSize: '13px' }}>Link Evidence:</small>
-                  <div style={{ fontWeight: 500 }}>
-                    {selectedAlumni.evidence && selectedAlumni.evidence !== '-' ? (
-                      <a href={selectedAlumni.evidence} target="_blank" rel="noreferrer" style={{ color: '#3B82F6', textDecoration: 'underline' }}>Buka Evidence</a>
-                    ) : '-'}
-                  </div>
-                </div>
-              </div>
-            </div>
-            
+            <button 
+              className="btn btn-secondary" 
+              onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+              disabled={currentPage >= totalPages - 1 || loading}
+              style={{ borderRadius: '8px', padding: '8px 16px' }}
+            >
+              Next <ChevronRight size={18} />
+            </button>
           </div>
         </div>
-      )}
+      </div>
     </>
-  );
-}
-
-function getStatusBadge(status) {
-  let badgeClass = 'badge-neutral';
-  if (status === 'Teridentifikasi') badgeClass = 'badge-success';
-  else if (status === 'Perlu Verifikasi') badgeClass = 'badge-info';
-  else if (status === 'Belum Ditemukan') badgeClass = 'badge-danger';
-
-  return (
-    <span className={`badge ${badgeClass}`}>
-      {status}
-    </span>
   );
 }
