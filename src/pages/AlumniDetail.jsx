@@ -10,7 +10,6 @@ export default function AlumniDetail() {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   
-  // State utama untuk form (Data Binding)
   const [formData, setFormData] = useState({
     tempat_kerja: '',
     jabatan: '',
@@ -29,7 +28,6 @@ export default function AlumniDetail() {
   const fetchAlumniData = async () => {
     setLoading(true);
     try {
-      console.log('--- FETCHING DATA ---');
       const { data, error } = await supabase
         .from('alumni')
         .select('*')
@@ -39,12 +37,9 @@ export default function AlumniDetail() {
       if (error) throw error;
       
       if (data) {
-        console.log('Data yang ditarik dari Supabase:', data);
         setAlumni(data);
-        // Sinkronisasi data ke state formData untuk input
         setFormData({
           ...data,
-          // Pastikan field yang mungkin null di DB diubah jadi string kosong
           tempat_kerja: data.tempat_kerja || '',
           jabatan: data.jabatan || '',
           alamat: data.alamat || '',
@@ -65,16 +60,8 @@ export default function AlumniDetail() {
   const handleSave = async () => {
     setLoading(true);
     try {
-      console.log('--- SAVING DATA ---');
-      console.log('Data yang akan dikirim (formData):', formData);
-
-      // LOGIKA AMAN (Safe Update):
-      // Kita hanya mengirim kolom yang benar-benar ada di database (berdasarkan hasil fetch)
-      // Ini mencegah error "column does not exist" jika 'alamat' atau 'status_kerja' belum dibuat
       const existingColumns = Object.keys(alumni);
       const dataToSave = {};
-      
-      // Daftar field yang kita inginkan
       const targetFields = ['tempat_kerja', 'jabatan', 'alamat', 'linkedin_url', 'email', 'nomor_wa', 'status_kerja'];
       
       targetFields.forEach(field => {
@@ -82,8 +69,6 @@ export default function AlumniDetail() {
           dataToSave[field] = formData[field];
         }
       });
-
-      console.log('Data final yang dikirim ke Supabase:', dataToSave);
 
       const { error } = await supabase
         .from('alumni')
@@ -94,11 +79,8 @@ export default function AlumniDetail() {
 
       alert('Berhasil simpan ke DB');
       setIsEditing(false);
-      
-      // Refresh data untuk memastikan tampilan sinkron
       await fetchAlumniData();
     } catch (error) {
-      console.error('Save Error:', error.message);
       alert('Gagal simpan: ' + error.message);
     } finally {
       setLoading(false);
@@ -147,7 +129,6 @@ export default function AlumniDetail() {
           case '5': updatedData.email = val; updatedFields.email = true; break;
           case '6': updatedData.nomor_wa = val.replace(/[^0-9\+]/g, ''); updatedFields.nomor_wa = true; break;
           case '7': 
-            // Ambil maksimal 3 kata untuk status kerja agar rapi
             const words = val.split(' ');
             const shortStatus = words.length > 3 ? words.slice(0, 3).join(' ') + '...' : val;
             updatedData.status_kerja = shortStatus; 
@@ -165,73 +146,73 @@ export default function AlumniDetail() {
 
   if (loading && !alumni) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', gap: '20px', background: '#F8FAFC' }}>
-        <Loader2 className="animate-spin" size={60} color="var(--primary)" />
-        <h2 style={{ color: 'var(--text-secondary)' }}>Memuat Data Alumni...</h2>
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '60vh', gap: '20px' }}>
+        <Loader2 className="animate-spin" size={48} color="var(--primary)" />
+        <h2 style={{ color: 'var(--text-secondary)', fontSize: '18px' }}>Sinkronisasi profil alumni...</h2>
       </div>
     );
   }
 
-  if (!alumni) return <div style={{ padding: '50px', textAlign: 'center' }}>Data alumni tidak ditemukan atau ID salah.</div>;
+  if (!alumni) return <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-secondary)' }}>Data alumni tidak ditemukan.</div>;
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '30px' }}>
-      <div style={{ marginBottom: '30px' }}>
-        <button onClick={() => navigate('/tracking')} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <ArrowLeft size={20} /> Kembali ke List Tracking
+    <div>
+      <div style={{ marginBottom: '24px' }}>
+        <button onClick={() => navigate('/tracking')} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', fontSize: '13px' }}>
+          <ArrowLeft size={16} /> Kembali ke Daftar
         </button>
       </div>
 
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px', background: 'white', padding: '30px', borderRadius: '20px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
-          <div style={{ background: 'var(--primary)', color: 'white', width: '80px', height: '80px', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', fontWeight: 800 }}>
+      <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+          <div style={{ background: 'var(--primary)', color: 'white', width: '64px', height: '64px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', fontWeight: 700 }}>
             {alumni.nama_lulusan?.charAt(0)}
           </div>
           <div>
-            <h1 style={{ fontSize: '30px', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>{alumni.nama_lulusan}</h1>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '18px', margin: '5px 0 0' }}>NIM: {alumni.nim || '-'}</p>
+            <h1 style={{ margin: 0, fontSize: '28px', color: 'var(--text-primary)' }}>{alumni.nama_lulusan}</h1>
+            <p style={{ margin: '4px 0 0', fontWeight: 500, color: 'var(--text-secondary)' }}>NIM: {alumni.nim || '-'}</p>
           </div>
         </div>
         <div>
           {isEditing ? (
-            <div style={{ display: 'flex', gap: '15px' }}>
-              <button onClick={() => setIsEditing(false)} className="btn btn-secondary" style={{ height: '48px', padding: '0 25px' }}>
-                <X size={18} /> Batal
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button onClick={() => setIsEditing(false)} className="btn btn-secondary" style={{ padding: '8px 16px' }}>
+                <X size={16} /> Batal
               </button>
-              <button onClick={handleSave} className="btn btn-primary" style={{ height: '48px', padding: '0 25px', boxShadow: '0 4px 6px -1px rgba(var(--primary-rgb), 0.3)' }}>
-                <Save size={18} /> {loading ? 'Menyimpan...' : 'Simpan ke DB'}
+              <button onClick={handleSave} className="btn btn-primary" style={{ padding: '8px 16px' }}>
+                <Save size={16} /> Simpan
               </button>
             </div>
           ) : (
-            <button onClick={() => setIsEditing(true)} className="btn btn-primary" style={{ height: '48px', padding: '0 25px' }}>
-              <Edit2 size={18} /> Edit Data Alumni
+            <button onClick={() => setIsEditing(true)} className="btn btn-primary" style={{ padding: '8px 16px' }}>
+              <Edit2 size={16} /> Edit Profil
             </button>
           )}
         </div>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.2fr', gap: '40px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.2fr', gap: '32px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
-          {/* Magic Paste Area */}
-          <div className="card" style={{ background: '#F0FDF4', border: '2px solid #BBF7D0', padding: '30px', borderRadius: '24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-              <TrendingUp size={24} color="#15803D" />
-              <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#15803D', margin: 0 }}>Magic Paste Auto-Fill</h3>
+          <div className="card" style={{ background: 'rgba(99, 102, 241, 0.03)', border: '1px solid var(--border-color)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+              <TrendingUp size={20} color="var(--primary)" />
+              <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Magic Paste Vault</h3>
             </div>
             <textarea 
-              placeholder="Tempel 7 poin dari AI di sini..."
-              style={{ width: '100%', height: '120px', border: '2px solid #86EFAC', borderRadius: '16px', padding: '16px', fontSize: '15px', resize: 'none', background: 'white' }}
+              placeholder="Tempel hasil pelacakan AI di sini..."
+              className="form-control"
+              style={{ height: '120px', resize: 'none', background: 'var(--bg-body)' }}
               onChange={(e) => handleMagicPaste(e.target.value)}
             ></textarea>
-            <p style={{ fontSize: '13px', color: '#166534', marginTop: '12px', fontWeight: 500 }}>Sistem otomatis mendeteksi: Perusahaan, Jabatan, Alamat, LinkedIn, Email, WA, Status.</p>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '12px' }}>Parser otomatis untuk: Perusahaan, Jabatan, Lokasi, LinkedIn, Email, WA, Status.</p>
           </div>
 
-          <div className="card" style={{ padding: '30px', borderRadius: '24px' }}>
-            <h3 style={{ marginBottom: '30px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)' }}>
-              <Briefcase size={24} color="var(--primary)" /> Informasi Pekerjaan
+          <div className="card">
+            <h3 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '20px', fontWeight: 600 }}>
+              <Briefcase size={22} color="var(--primary)" /> Career Intelligence
             </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
               <InputGroup label="Tempat Kerja" field="tempat_kerja" formData={formData} setFormData={setFormData} isEditing={isEditing} highlight={highlights.tempat_kerja} />
               <InputGroup label="Jabatan" field="jabatan" formData={formData} setFormData={setFormData} isEditing={isEditing} highlight={highlights.jabatan} />
               <div style={{ gridColumn: '1 / span 2' }}>
@@ -250,11 +231,11 @@ export default function AlumniDetail() {
             </div>
           </div>
 
-          <div className="card" style={{ padding: '30px', borderRadius: '24px' }}>
-            <h3 style={{ marginBottom: '30px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)' }}>
-              <Mail size={24} color="var(--primary)" /> Kontak & Sosmed
+          <div className="card">
+            <h3 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '20px', fontWeight: 600 }}>
+              <Mail size={22} color="var(--primary)" /> Network Details
             </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
               <InputGroup label="Email" field="email" formData={formData} setFormData={setFormData} isEditing={isEditing} highlight={highlights.email} />
               <InputGroup label="Nomor WhatsApp" field="nomor_wa" formData={formData} setFormData={setFormData} isEditing={isEditing} highlight={highlights.nomor_wa} />
               <div style={{ gridColumn: '1 / span 2' }}>
@@ -264,31 +245,34 @@ export default function AlumniDetail() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-          <div className="card" style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)', color: 'white', padding: '30px', borderRadius: '24px', border: 'none' }}>
-            <h3 style={{ color: 'white', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '20px' }}>
-              <Globe size={24} color="#60A5FA" /> AI Search Helper
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div className="card" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}>
+            <h3 style={{ color: 'var(--text-primary)', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '18px' }}>
+              <Globe size={20} color="var(--primary)" /> AI OSINT Helper
             </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              <button onClick={handleSearch} className="btn" style={{ width: '100%', background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', height: '50px' }}>
-                <Search size={18} /> Cari di Google
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button onClick={handleSearch} className="btn btn-secondary" style={{ width: '100%', height: '48px' }}>
+                <Search size={16} /> Cari di Google
               </button>
               <button 
                 onClick={() => {
                   const prompt = `Cari informasi terbaru tentang ${alumni.nama_lulusan} lulusan ${alumni.program_studi} dari ${alumni.fakultas}. Berikan data dalam 7 poin: 1.Perusahaan, 2.Jabatan, 3.Alamat, 4.LinkedIn, 5.Email, 6.WhatsApp, 7.Status Kerja. (jawab intinya saja, jangan berikan kalimat pembuka atau penutup)`;
                   navigator.clipboard.writeText(prompt);
-                  alert('Prompt AI disalin! Silakan tempel di Grok/ChatGPT.');
+                  alert('Prompt AI disalin!');
                 }} 
-                className="btn btn-primary" style={{ width: '100%', height: '50px', fontWeight: 700 }}
+                className="btn btn-primary" style={{ width: '100%', height: '48px' }}
               >
                 Salin Prompt AI
               </button>
+              <p style={{ fontSize: '11px', textAlign: 'center', color: 'var(--text-secondary)', lineHeight: 1.5, marginTop: '4px' }}>
+                Klik tombol di atas, lalu tempel (paste) ke Grok AI atau Perplexity untuk mencari data otomatis.
+              </p>
             </div>
           </div>
 
-          <div className="card" style={{ padding: '30px', borderRadius: '24px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 800, marginBottom: '20px' }}>Data Akademik</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          <div className="card">
+            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '20px', color: 'var(--text-primary)' }}>Academic Profile</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <InfoRow label="Program Studi" value={alumni.program_studi} />
               <InfoRow label="Fakultas" value={alumni.fakultas} />
               <InfoRow label="Tahun Masuk" value={alumni.tahun_masuk} />
@@ -304,22 +288,20 @@ export default function AlumniDetail() {
 function InputGroup({ label, field, formData, setFormData, isEditing, highlight, type = 'text', options = [] }) {
   const value = formData[field] || '';
   const highlightStyle = highlight ? { 
-    borderColor: '#22C55E', 
-    boxShadow: '0 0 0 4px rgba(34, 197, 94, 0.2)', 
-    background: '#F0FDF4',
-    transition: 'all 0.3s ease' 
-  } : { transition: 'all 0.3s ease' };
+    borderColor: 'var(--primary)', 
+    background: 'rgba(99, 102, 241, 0.05)'
+  } : {};
 
   if (isEditing) {
     if (type === 'select') {
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>{label}</label>
+          <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>{label}</label>
           <select 
             className="form-control" 
             value={value} 
             onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
-            style={{ width: '100%', height: '50px', borderRadius: '14px', border: '2px solid #E2E8F0', ...highlightStyle }}
+            style={{ ...highlightStyle }}
           >
             <option value="">Pilih {label}...</option>
             {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
@@ -329,14 +311,13 @@ function InputGroup({ label, field, formData, setFormData, isEditing, highlight,
     }
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>{label}</label>
+        <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>{label}</label>
         <input 
           type="text" 
           className="form-control" 
           value={value} 
           onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
-          style={{ width: '100%', height: '50px', borderRadius: '14px', border: '2px solid #E2E8F0', ...highlightStyle }}
-          placeholder={`Isi ${label}...`}
+          style={{ ...highlightStyle }}
         />
       </div>
     );
@@ -344,15 +325,13 @@ function InputGroup({ label, field, formData, setFormData, isEditing, highlight,
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>{label}</label>
+      <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)' }}>{label}</label>
       <div style={{ 
-        fontSize: '17px', 
-        fontWeight: 600, 
-        color: highlight ? '#15803D' : 'var(--text-primary)',
-        padding: highlight ? '10px' : '0',
-        background: highlight ? '#F0FDF4' : 'transparent',
-        borderRadius: '10px',
-        minHeight: '28px',
+        fontSize: '16px', 
+        fontWeight: 500, 
+        color: highlight ? 'var(--primary)' : 'var(--text-primary)',
+        padding: highlight ? '8px' : '0',
+        borderRadius: '8px',
         ...highlightStyle
       }}>
         {value || '-'}
@@ -363,9 +342,9 @@ function InputGroup({ label, field, formData, setFormData, isEditing, highlight,
 
 function InfoRow({ label, value }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '12px', borderBottom: '1px solid #F1F5F9' }}>
-      <span style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 500 }}>{label}</span>
-      <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{value || '-'}</span>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>
+      <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{label}</span>
+      <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{value || '-'}</span>
     </div>
   );
 }

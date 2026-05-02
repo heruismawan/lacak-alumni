@@ -24,7 +24,6 @@ export default function Login() {
       await login(email, password);
       navigate(from, { replace: true });
     } catch (err) {
-      console.error('Login error:', err);
       setError(err.message || 'Gagal login. Periksa email dan password Anda.');
     } finally {
       setIsLoading(false);
@@ -32,152 +31,103 @@ export default function Login() {
   };
 
   return (
-    <div className="bg-premium" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', padding: '24px' }}>
-      <div style={{ maxWidth: '440px', width: '100%', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+      <div style={{ width: '100%', maxWidth: '400px' }}>
         
-        {/* Decorative elements */}
-        <div style={{ position: 'absolute', top: '-40px', left: '-40px', width: '120px', height: '120px', background: 'var(--primary-light)', borderRadius: '50%', filter: 'blur(60px)', opacity: 0.6, zIndex: 0 }}></div>
-        <div style={{ position: 'absolute', bottom: '-40px', right: '-40px', width: '120px', height: '120px', background: '#BAE6FD', borderRadius: '50%', filter: 'blur(60px)', opacity: 0.6, zIndex: 0 }}></div>
-
-        <div className="card" style={{ padding: '48px 40px', position: 'relative', zIndex: 1, backdropFilter: 'blur(10px)', backgroundColor: 'rgba(255, 255, 255, 0.9)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.08)' }}>
-          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <div style={{ 
+          background: '#1e293b', 
+          border: '1px solid #334155', 
+          borderRadius: '16px', 
+          padding: '40px', 
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)' 
+        }}>
+          
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
             <div style={{ 
-              background: 'linear-gradient(135deg, var(--primary) 0%, #0d9488 100%)', 
+              background: '#6366f1', 
               color: 'white', 
-              width: '72px', 
-              height: '72px', 
+              width: '56px', 
+              height: '56px', 
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center', 
-              borderRadius: '20px', 
-              margin: '0 auto 24px',
-              boxShadow: '0 10px 15px -3px rgba(15, 118, 110, 0.3)'
+              borderRadius: '12px', 
+              margin: '0 auto 20px'
             }}>
-              <GraduationCap size={40} strokeWidth={1.5} />
+              <GraduationCap size={32} />
             </div>
-            <h2 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px', letterSpacing: '-0.025em' }}>Lacak Alumni</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: 1.6 }}>Silakan masuk ke akun Anda untuk mengelola data penelusuran alumni.</p>
+            <h2 style={{ fontSize: '24px', fontWeight: 600, color: '#e2e8f0', marginBottom: '8px' }}>Lacak Alumni</h2>
+            <p style={{ color: '#94a3b8', fontSize: '14px' }}>Sistem Informasi Penelusuran Alumni</p>
           </div>
 
-          {/* Demo Account Info Box */}
+          {/* Demo Account Box */}
           <div style={{ 
-            background: '#F0F9FF', 
-            border: '1px solid #BAE6FD', 
-            borderRadius: '16px', 
+            background: 'rgba(99, 102, 241, 0.05)', 
+            border: '1px solid rgba(99, 102, 241, 0.2)', 
+            borderRadius: '12px', 
             padding: '16px', 
-            marginBottom: '32px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px'
+            marginBottom: '24px'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ background: '#0EA5E9', color: 'white', padding: '4px', borderRadius: '6px' }}>
-                <AlertCircle size={16} />
-              </div>
-              <span style={{ fontSize: '13px', fontWeight: 600, color: '#0369A1' }}>Informasi Akun Demo</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <AlertCircle size={14} color="#818cf8" />
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#818cf8' }}>Demo Access</span>
             </div>
-            <div style={{ fontSize: '13px', color: '#0369A1', lineHeight: 1.5 }}>
-              Email: <code style={{ fontWeight: 700 }}>admin@gmail.com</code><br />
-              Password: <code style={{ fontWeight: 700 }}>1234</code>
-            </div>
+            <p style={{ fontSize: '12px', color: '#94a3b8', margin: '4px 0' }}>
+              Email: <span style={{ color: '#e2e8f0' }}>admin@gmail.com</span> | Pass: <span style={{ color: '#e2e8f0' }}>1234</span>
+            </p>
             <button 
               type="button"
-              onClick={() => {
-                setEmail('admin@gmail.com');
-                setPassword('1234');
-              }}
-              style={{ 
-                background: '#E0F2FE', 
-                color: '#0369A1', 
-                border: 'none', 
-                padding: '8px 12px', 
-                borderRadius: '10px', 
-                fontSize: '12px', 
-                fontWeight: 600,
-                cursor: 'pointer',
-                textAlign: 'center'
-              }}
+              onClick={() => { setEmail('admin@gmail.com'); setPassword('1234'); }}
+              style={{ width: '100%', marginTop: '8px', background: 'rgba(99, 102, 241, 0.1)', color: '#818cf8', border: 'none', padding: '6px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
             >
               Gunakan Akun Demo
             </button>
           </div>
 
           {error && (
-            <div style={{ 
-              background: '#FEF2F2', 
-              color: '#B91C1C', 
-              padding: '14px 16px', 
-              marginBottom: '32px', 
-              borderRadius: '12px', 
-              fontSize: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              border: '1px solid #FEE2E2'
-            }}>
-              <AlertCircle size={18} />
-              <span>{error}</span>
+            <div style={{ background: 'rgba(244, 63, 94, 0.1)', color: '#fb7185', padding: '12px', marginBottom: '20px', borderRadius: '8px', fontSize: '13px', border: '1px solid rgba(244, 63, 94, 0.2)' }}>
+              {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit}>
-            <div className="form-group" style={{ marginBottom: '24px' }}>
-              <label style={{ color: 'var(--text-secondary)', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Alamat Email</label>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', color: '#94a3b8', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>Email</label>
               <div style={{ position: 'relative' }}>
-                <Mail size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <Mail size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#475569' }} />
                 <input 
                   type="email" 
-                  className="form-control" 
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="name@university.ac.id"
-                  style={{ paddingLeft: '44px', height: '48px', borderRadius: '12px' }}
-                  required 
+                  placeholder="admin@email.com"
+                  style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#e2e8f0', padding: '10px 12px 10px 36px', borderRadius: '8px', fontSize: '14px', outline: 'none' }}
                 />
               </div>
             </div>
             
-            <div className="form-group" style={{ marginBottom: '40px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <label style={{ color: 'var(--text-secondary)', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Password</label>
-                <a href="#" style={{ fontSize: '13px', color: 'var(--primary)', fontWeight: 500 }}>Lupa password?</a>
-              </div>
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', color: '#94a3b8', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>Password</label>
               <div style={{ position: 'relative' }}>
-                <Lock size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <Lock size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#475569' }} />
                 <input 
                   type="password" 
-                  className="form-control" 
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  style={{ paddingLeft: '44px', height: '48px', borderRadius: '12px' }}
-                  required 
+                  style={{ width: '100%', background: '#0f172a', border: '1px solid #334155', color: '#e2e8f0', padding: '10px 12px 10px 36px', borderRadius: '8px', fontSize: '14px', outline: 'none' }}
                 />
               </div>
             </div>
 
             <button 
               type="submit" 
-              className="btn btn-primary" 
-              style={{ width: '100%', height: '52px', fontSize: '16px', borderRadius: '14px', fontWeight: 600 }}
               disabled={isLoading}
+              style={{ width: '100%', padding: '12px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
             >
-              {isLoading ? (
-                <Loader2 size={20} className="animate-spin" style={{ animation: 'spin 1s linear infinite' }} />
-              ) : (
-                <><LogIn size={20} /> Masuk Sekarang</>
-              )}
+              {isLoading ? <Loader2 size={18} className="animate-spin" /> : 'Masuk ke Dashboard'}
             </button>
           </form>
-
-          <div style={{ marginTop: '32px', textAlign: 'center', fontSize: '14px', color: 'var(--text-secondary)' }}>
-            Belum memiliki akses? <a href="#" style={{ color: 'var(--primary)', fontWeight: 600 }}>Hubungi IT Support</a>
-          </div>
         </div>
-        
-        <p style={{ textAlign: 'center', marginTop: '32px', fontSize: '13px', color: 'var(--text-muted)' }}>
-          © 2026 Lacak Alumni - Career Development Center
-        </p>
       </div>
     </div>
   );
